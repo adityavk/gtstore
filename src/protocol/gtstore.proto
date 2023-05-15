@@ -1,0 +1,74 @@
+syntax = "proto3";
+import "google/protobuf/empty.proto";
+
+package gtstore;
+
+// Manager service for the clients
+service GTManagerService {
+  rpc GetPrimaryNodes(google.protobuf.Empty) returns (GetPrimaryNodesResponse) {}
+  rpc GetPrimaryNode(GetPrimaryNodeRequest) returns (GetPrimaryNodeResponse) {}
+}
+
+// Internal manager service used by storage nodes, implemented as a gRPC C++ callback service
+service GTManagerInternalService {
+  rpc RegisterStorageNode(RegisterStorageNodeRequest) returns (RegisterStorageNodeResponse) {}
+}
+
+service GTStorageService {
+  rpc GetValue(GetValueRequest) returns (GetValueResponse) {}
+  rpc SetValue(SetValueRequest) returns (google.protobuf.Empty) {}
+  rpc SetPrimary(SetPrimaryRequest) returns (google.protobuf.Empty) {}
+  rpc CheckHealth(google.protobuf.Empty) returns (google.protobuf.Empty);  
+}
+
+message GetValueRequest {
+  string key = 1;
+}
+
+message GetValueResponse {
+  string value = 1;
+}
+
+message SetValueRequest {
+  string key = 1;
+  string value = 2;
+}
+
+message StorageNode {
+  int32 id = 1;
+  string url = 2;
+}
+
+message PrimaryNodeInfo {
+  string key = 1;
+  int32 storageNodeId = 2;
+}
+
+message GetPrimaryNodesResponse {
+  repeated StorageNode storageNodes = 1;
+  repeated PrimaryNodeInfo primaryNodes = 2;
+}
+
+message GetPrimaryNodeRequest {
+  string key = 1;
+  // If key is not assigned yet (for new keys), this bool needs to be true for assigning
+  optional bool assignPrimary = 2;
+}
+
+message GetPrimaryNodeResponse {
+  int32 id = 1;
+}
+
+message RegisterStorageNodeRequest {
+  int32 id = 1;
+  string url = 2;
+}
+
+message RegisterStorageNodeResponse {
+  repeated StorageNode storageNodes = 1;
+}
+
+message SetPrimaryRequest {
+  string key = 1;
+  repeated int32 replicaIds = 2;
+}
